@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "22.x"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -29,6 +29,7 @@
     "@radix-ui/react-tooltip": "^1.2.16",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
+    "@swc/helpers": "^0.5.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "culori": "^4.0.2",

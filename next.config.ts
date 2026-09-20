@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  outputFileTracingExcludes: {
-    "/*": ["./work/**", "./outputs/**", "./tests/**"],
+  // Node 22 resolves @swc/helpers to ESM; include it so Vercel lambdas do not 500.
+  outputFileTracingIncludes: {
+    "*": ["./node_modules/@swc/helpers/esm/**"],
+    "/*": ["./node_modules/@swc/helpers/esm/**"],
   },
   async headers() {
     return [
