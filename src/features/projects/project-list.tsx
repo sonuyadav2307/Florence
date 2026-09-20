@@ -13,7 +13,7 @@ import {
   saveProject,
 } from "@/features/projects/api";
 import { isDemoMode } from "@/lib/config";
-import { browserDemoRepository, DEMO_EDITOR, listDemoSeed } from "@/lib/repositories/local-demo";
+import { browserDemoRepository, DEMO_EDITOR } from "@/lib/repositories/local-demo";
 import type { ProjectSummary } from "@/lib/types";
 import { formatEventDate, formatUpdatedAt } from "@/lib/utils";
 
@@ -28,9 +28,7 @@ export function ProjectList() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("active");
-  const [items, setItems] = useState<ProjectSummary[] | null>(() =>
-    isDemoMode() ? listDemoSeed(demoQuery("", "active")) : null,
-  );
+  const [items, setItems] = useState<ProjectSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 

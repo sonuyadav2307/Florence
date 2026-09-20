@@ -1,5 +1,5 @@
 export function isDemoMode(): boolean {
-  return process.env.NEXT_PUBLIC_FLORENCE_DEMO === "true";
+  return true;
 }
 
 export function isSupabaseConfigured(): boolean {
