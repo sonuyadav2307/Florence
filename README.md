@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Florence
 
-## Getting Started
+Florence is a staff web app for an event planning team. Planners choose five coordinated colors, assemble flower combinations, assign those colors to event elements, and print a client concept sheet.
 
-First, run the development server:
+This repository implements the P0 product described in `outputs/Florence_Build_Specification.md`.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js 16.3.5 App Router, React 19.2.8, TypeScript
+- Tailwind CSS 4, Radix primitives, Lucide icons
+- Culori 4.0.2 for OKLCH generation and OKLab distance
+- Zod 4.6.5 for payload validation
+- Supabase Auth/Postgres for production persistence
+- Vitest 5 and Playwright for tests
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Exact versions are recorded in `package-lock.json`. Use `npm ci` in CI.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Local demo
 
-## Learn More
+1. Copy `.env.example` to `.env.local` if needed. Demo mode is already enabled for local development.
+2. `npm install`
+3. `npm run dev`
+4. Open `http://localhost:3000`. The demo workspace opens on Projects.
 
-To learn more about Next.js, take a look at the following resources:
+Demo projects persist in `localStorage` on this device. The Garden Dinner fixture is seeded automatically.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Do not set `NEXT_PUBLIC_FLORENCE_DEMO=true` in production. A configured production app must not fall back to demo data when the backend fails.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+- `npm run dev` — development server
+- `npm run test` — unit tests
+- `npm run lint` — ESLint
+- `npm run build` — production build
+- `npm run test:e2e` — Playwright (starts or reuses the dev server)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Production setup
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create separate development and production Supabase projects.
+2. Apply `supabase/migrations/0001_florence_p0.sql`.
+3. Provision staff users and `workspace_members` rows with a deployment operator credential. There is no invitation UI in P0.
+4. Set `NEXT_PUBLIC_FLORENCE_DEMO=false` or omit it.
+5. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_APP_ORIGIN`.
+6. Host on a Vercel plan suitable for commercial use. The Hobby plan is not appropriate for this company tool.
+
+Service-role keys, database passwords, and privileged migration credentials must stay in the operator environment. Never expose them as `NEXT_PUBLIC_` values.
+
+## Backup
+
+Use the selected Supabase plan’s backup and restore tools. Test restore on a non-production copy before storing live client projects. Schema changes must go through versioned SQL in `supabase/migrations`.
+
+## Content still required before a pilot
+
+- Company name and brand assets
+- Licensed flower photography to replace placeholders
+- Florist-reviewed catalog corrections
+- Preferred currency and time zone
+- Initial staff access list
