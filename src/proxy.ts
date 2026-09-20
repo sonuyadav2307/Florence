@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DEMO_COOKIE, isDemoMode } from "@/lib/config";
 
-const PUBLIC_PATHS = ["/auth/callback"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/auth"];
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
 
 function applyDemoSession(request: NextRequest, response: NextResponse) {
   if (isDemoMode() && request.cookies.get(DEMO_COOKIE)?.value !== "editor") {
@@ -15,12 +19,19 @@ function applyDemoSession(request: NextRequest, response: NextResponse) {
   return response;
 }
 
+function redirectTo(request: NextRequest, pathname: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  return applyDemoSession(request, NextResponse.redirect(url));
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/flowers/") ||
-    pathname.includes(".") && !pathname.startsWith("/api")
+    (pathname.includes(".") && !pathname.startsWith("/api"))
   ) {
     return applyDemoSession(request, NextResponse.next());
   }
@@ -30,14 +41,22 @@ export function proxy(request: NextRequest) {
     : Boolean(request.cookies.get("sb-access-token") || request.cookies.toString().includes("sb-"));
 
   if (pathname === "/" || pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/projects";
-    url.search = "";
-    return applyDemoSession(request, NextResponse.redirect(url));
+    if (signedIn) {
+      return redirectTo(request, "/projects");
+    }
+    if (pathname === "/") {
+      return redirectTo(request, "/login");
+    }
+    return applyDemoSession(request, NextResponse.next());
   }
 
-  const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
-  if (!signedIn && !isPublic && (pathname.startsWith("/projects") || pathname.startsWith("/flowers") || pathname.startsWith("/api/projects"))) {
+  if (
+    !signedIn &&
+    !isPublicPath(pathname) &&
+    (pathname.startsWith("/projects") ||
+      pathname.startsWith("/flowers") ||
+      pathname.startsWith("/api/projects"))
+  ) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
         { error: { code: "NOT_AUTHENTICATED", message: "Sign in to continue." } },
@@ -45,7 +64,8 @@ export function proxy(request: NextRequest) {
       );
     }
     const url = request.nextUrl.clone();
-    url.pathname = "/projects";
+    url.pathname = "/login";
+    url.search = `?next=${encodeURIComponent(pathname)}`;
     return NextResponse.redirect(url);
   }
 
